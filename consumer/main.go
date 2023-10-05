@@ -8,6 +8,25 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+func subscribeChannel(conn *websocket.Conn, channel string) error {
+	data := map[string]interface{}{
+		"action":  "subscribe",
+		"channel": channel,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	if err := conn.WriteMessage(websocket.TextMessage, jsonData); err != nil {
+		log.Println("Erro ao enviar mensagem WebSocket:", err)
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	serverAddr := "ws://exchange:8080/"
 
@@ -20,21 +39,9 @@ func main() {
 
 	fmt.Println("Conectado ao servidor WebSocket.")
 
-	data := map[string]interface{}{
-		"action":  "subscribe",
-		"channel": "BRL_USD:ticker",
-	}
-
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		log.Println("Erro ao serializar JSON:", err)
-		return
-	}
-
-	if err := conn.WriteMessage(websocket.TextMessage, jsonData); err != nil {
-		log.Println("Erro ao enviar mensagem WebSocket:", err)
-		return
-	}
+	subscribeChannel(conn, "BRL_USD:ticker")
+	subscribeChannel(conn, "BRL_USD:ORDERBOOK")
+	subscribeChannel(conn, "BRL_USD:TRANSACTIONS")
 
 	for {
 		messageType, p, err := conn.ReadMessage()
