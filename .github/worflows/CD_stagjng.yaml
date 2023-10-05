@@ -1,0 +1,51 @@
+name: CD Exchange - STG
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Deploy_Company_Service:
+    name: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Upload application
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP_ADDRESS_PRD }}
+          username: ${{ secrets.SERVER_USERNAME_PRD }}
+          key: ${{ secrets.SERVER_KEY_PRD }}
+          port: 22
+          source: "."
+          target: "~/exchange/"
+
+      - name: Deploy Service
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP_ADDRESS_PRD }}
+          username: ${{ secrets.SERVER_USERNAME_PRD }}
+          key: ${{ secrets.SERVER_KEY_PRD }}
+          port: 22
+          script: |
+            cd $HOME/exchange/ 
+              sudo docker network create internal-net
+            sudo docker-compose -f docker-compose.yml build --no-cache &&sudo  docker-compose -f docker-compose.yml up -d
+            if [ $? -eq 0 ]
+              then cd .. ;
+              else exit 1 ;
+            fi
+
+      - name: Delete Files
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP_ADDRESS_PRD }}
+          username: ${{ secrets.SERVER_USERNAME_PRD }}
+          key: ${{ secrets.SERVER_KEY_PRD }}
+          port: 22
+          script: |
+            sudo rm -r $HOME/exchange/
+            sudo docker image prune --force
+            sudo docker container prune --force
+            sudo docker volume prune  --force

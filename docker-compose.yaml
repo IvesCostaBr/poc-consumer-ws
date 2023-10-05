@@ -1,0 +1,24 @@
+networks:
+  internal-net:
+    external: true
+    driver: bridge
+
+services:
+  exchange:
+    image: arthopacini/exchange:latest
+    container_name: exchange
+    restart: always
+    ports:
+      - 8080:8080
+      - 8081:8081
+    networks:
+      - internal-net
+
+  go-consumer:
+    container_name: go-consumer-ws
+    build:
+      context: ./consumer
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - internal-net
