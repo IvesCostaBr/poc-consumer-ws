@@ -1,7 +1,7 @@
 name: CD Exchange - STG
 
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
   Deploy:
