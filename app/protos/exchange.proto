@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "./pb";
+
+package exchange;
+
+service StreamExample {
+  rpc RequestAction (ActionRequest) returns (DataReceiver);
+  rpc SubscribeEvent (SubscribeEventRequest) returns (stream DataReceiver);
+}
+
+message SubscribeEventRequest {
+  string channel = 1;
+}
+
+message DataReceiver {
+  string data = 1;
+  string channel = 2;
+}
+
+message ActionRequest {
+  string action = 1;
+  string market = 2;
+  int32 messageId = 3;
+}
