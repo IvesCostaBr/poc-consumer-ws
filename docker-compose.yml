@@ -17,7 +17,7 @@ services:
   go-consumer:
     container_name: go-consumer-ws
     build:
-      context: ./consumer
+      context: ./app/consumer
       dockerfile: Dockerfile
     restart: always
     networks:

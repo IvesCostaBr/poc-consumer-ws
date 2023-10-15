@@ -4,7 +4,7 @@ option go_package = "./pb";
 
 package exchange;
 
-service StreamExample {
+service ExchangeSteam {
   rpc RequestAction (ActionRequest) returns (DataReceiver);
   rpc SubscribeEvent (SubscribeEventRequest) returns (stream DataReceiver);
 }
@@ -16,6 +16,7 @@ message SubscribeEventRequest {
 message DataReceiver {
   string data = 1;
   string channel = 2;
+  bool isSuccess = 3;
 }
 
 message ActionRequest {
