@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	ExchangeSteam_Heathcheck_FullMethodName     = "/exchange.ExchangeSteam/Heathcheck"
 	ExchangeSteam_RequestAction_FullMethodName  = "/exchange.ExchangeSteam/RequestAction"
 	ExchangeSteam_SubscribeEvent_FullMethodName = "/exchange.ExchangeSteam/SubscribeEvent"
 )
@@ -27,6 +28,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ExchangeSteamClient interface {
+	Heathcheck(ctx context.Context, in *HeathCheck, opts ...grpc.CallOption) (*HeathCheck, error)
 	RequestAction(ctx context.Context, in *ActionRequest, opts ...grpc.CallOption) (*DataReceiver, error)
 	SubscribeEvent(ctx context.Context, in *SubscribeEventRequest, opts ...grpc.CallOption) (ExchangeSteam_SubscribeEventClient, error)
 }
@@ -37,6 +39,15 @@ type exchangeSteamClient struct {
 
 func NewExchangeSteamClient(cc grpc.ClientConnInterface) ExchangeSteamClient {
 	return &exchangeSteamClient{cc}
+}
+
+func (c *exchangeSteamClient) Heathcheck(ctx context.Context, in *HeathCheck, opts ...grpc.CallOption) (*HeathCheck, error) {
+	out := new(HeathCheck)
+	err := c.cc.Invoke(ctx, ExchangeSteam_Heathcheck_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *exchangeSteamClient) RequestAction(ctx context.Context, in *ActionRequest, opts ...grpc.CallOption) (*DataReceiver, error) {
@@ -84,6 +95,7 @@ func (x *exchangeSteamSubscribeEventClient) Recv() (*DataReceiver, error) {
 // All implementations must embed UnimplementedExchangeSteamServer
 // for forward compatibility
 type ExchangeSteamServer interface {
+	Heathcheck(context.Context, *HeathCheck) (*HeathCheck, error)
 	RequestAction(context.Context, *ActionRequest) (*DataReceiver, error)
 	SubscribeEvent(*SubscribeEventRequest, ExchangeSteam_SubscribeEventServer) error
 	mustEmbedUnimplementedExchangeSteamServer()
@@ -93,6 +105,9 @@ type ExchangeSteamServer interface {
 type UnimplementedExchangeSteamServer struct {
 }
 
+func (UnimplementedExchangeSteamServer) Heathcheck(context.Context, *HeathCheck) (*HeathCheck, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Heathcheck not implemented")
+}
 func (UnimplementedExchangeSteamServer) RequestAction(context.Context, *ActionRequest) (*DataReceiver, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestAction not implemented")
 }
@@ -110,6 +125,24 @@ type UnsafeExchangeSteamServer interface {
 
 func RegisterExchangeSteamServer(s grpc.ServiceRegistrar, srv ExchangeSteamServer) {
 	s.RegisterService(&ExchangeSteam_ServiceDesc, srv)
+}
+
+func _ExchangeSteam_Heathcheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HeathCheck)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ExchangeSteamServer).Heathcheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ExchangeSteam_Heathcheck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ExchangeSteamServer).Heathcheck(ctx, req.(*HeathCheck))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ExchangeSteam_RequestAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -158,6 +191,10 @@ var ExchangeSteam_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "exchange.ExchangeSteam",
 	HandlerType: (*ExchangeSteamServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Heathcheck",
+			Handler:    _ExchangeSteam_Heathcheck_Handler,
+		},
 		{
 			MethodName: "RequestAction",
 			Handler:    _ExchangeSteam_RequestAction_Handler,

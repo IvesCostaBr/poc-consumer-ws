@@ -5,6 +5,7 @@ option go_package = "./pb";
 package exchange;
 
 service ExchangeSteam {
+  rpc Heathcheck (HeathCheck) returns (HeathCheck);
   rpc RequestAction (ActionRequest) returns (DataReceiver);
   rpc SubscribeEvent (SubscribeEventRequest) returns (stream DataReceiver);
 }
@@ -23,4 +24,8 @@ message ActionRequest {
   string action = 1;
   string market = 2;
   int32 messageId = 3;
+}
+
+message HeathCheck {
+  string status = 1;
 }

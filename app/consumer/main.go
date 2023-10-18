@@ -34,6 +34,10 @@ type ActionRequest struct {
 	MessageId string `json:"message_id"`
 }
 
+func (s *server) Heathcheck(ctx context.Context, req *pb.HeathCheck) (*pb.HeathCheck, error) {
+	return &pb.HeathCheck{Status: "OK"}, nil
+}
+
 func (s *server) RequestAction(ctx context.Context, req *pb.ActionRequest) (*pb.DataReceiver, error) {
 	conn := connectWebSocket()
 	defer conn.Close()
@@ -59,9 +63,9 @@ func (s *server) RequestAction(ctx context.Context, req *pb.ActionRequest) (*pb.
 	messageType, p, err := conn.ReadMessage()
 
 	if messageType == websocket.TextMessage {
-		return &pb.DataReceiver{Data: string(p)}, nil
+		return &pb.DataReceiver{Data: string(p), IsSuccess: true}, nil
 	}
-	return &pb.DataReceiver{Data: "Error"}, nil
+	return &pb.DataReceiver{Data: "Error", IsSuccess: false}, nil
 }
 
 func (s *server) SubscribeEvent(req *exchange.SubscribeEventRequest, stream exchange.ExchangeSteam_SubscribeEventServer) error {
@@ -88,7 +92,7 @@ func (s *server) SubscribeEvent(req *exchange.SubscribeEventRequest, stream exch
 				}
 				if messageType == websocket.TextMessage {
 					response := &exchange.DataReceiver{
-						Data:    "Dados recebidos via streaming: " + string(p),
+						Data:    string(p),
 						Channel: "canal_de_resposta",
 					}
 					if err := stream.Send(response); err != nil {
@@ -109,7 +113,7 @@ func (s *server) SubscribeEvent(req *exchange.SubscribeEventRequest, stream exch
 }
 
 func start(port int) *grpc.Server {
-	lis, error := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
+	lis, error := net.Listen("tcp", fmt.Sprintf("go-consumer:%d", port))
 	if error != nil {
 		log.Fatalf("Não foi possível conectar: %v", error)
 	}
@@ -143,7 +147,7 @@ func subscribeChannel(conn *websocket.Conn, channel string) error {
 }
 
 func connectWebSocket() *websocket.Conn {
-	serverAddr := "ws://localhost:8080/"
+	serverAddr := "ws://exchange:8080/"
 
 	conn, _, err := websocket.DefaultDialer.Dial(serverAddr, nil)
 	if err != nil {
