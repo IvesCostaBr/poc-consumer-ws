@@ -17,8 +17,12 @@ services:
   go-consumer:
     container_name: go-consumer-ws
     build:
-      context: ./app/consumer
+      context: ./app
       dockerfile: Dockerfile
+    ports:
+      - 80:50051
+    expose:
+      - 50051
     restart: always
     networks:
       - internal-net
